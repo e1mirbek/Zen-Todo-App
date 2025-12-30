@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class AppColors {
   // Основной фон
-  static const Color background = Color.fromRGBO(249, 250, 252, 1.0);
+  static const Color background = Color(0xFFFFFFFF);
 
   // Текст
   static const Color mainText = Color(0xFF1D1D2B);
@@ -13,7 +13,8 @@ class AppColors {
   static const Color bgCard = Color.fromRGBO(255, 255, 255, 1.0);
   static const Color red = Colors.red;
   // Цвет кнопки "Создать"
-  static const Color darkPurple = Color(0xFF4A3780); // Цвет иконки "+"
+  static const Color darkPurple = Color(0xFF4A3780); // Цвет иконки "+",
+  static const Color bgField = Color.fromRGBO(248, 250, 252, 1.0);
 
   // Статусы (для карточек статистики)
   // static const Color cardBlueBg = Color(0xFFEFELFF);

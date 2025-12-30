@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+// Виджет для отображения статистики - (всего - готов - актив)
+
 class SummaryCard extends StatelessWidget {
   final String title;
   final String subtitle;

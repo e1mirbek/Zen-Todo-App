@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../theme/colors.dart';
 
+// пустое состояние виджета - (когда нет задач)
+
 class EmptyState extends StatelessWidget {
   final String mainText;
   final String secondaryText;
