@@ -11,6 +11,8 @@ class TaskDialog extends StatefulWidget {
 }
 
 class _TaskDialogState extends State<TaskDialog> {
+  final _formKey = GlobalKey<FormState>();
+
   late final TextEditingController _taskController;
 
   // проверка если не null то рекдатируем задачу
@@ -32,77 +34,93 @@ class _TaskDialogState extends State<TaskDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
+      scrollable: true,
       contentPadding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
       backgroundColor: AppColors.background,
-      content: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            isEditing ? "Изменить" : "Новая задача",
-            style: TextStyle(
-              fontSize: 25.0,
-              color: AppColors.mainText,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 10.0),
-          Text(
-            isEditing
-                ? "Редактируйте прмяо сейчас"
-                : "Что вы планируете сделать сегодня?",
-            style: TextStyle(
-              color: AppColors.secondaryText,
-              fontSize: 15.0,
-              fontWeight: FontWeight.w400,
-            ),
-          ),
-          const SizedBox(height: 20.0),
-          TextFormField(
-            minLines: 5,
-            maxLines: 6,
-            controller: _taskController,
-            decoration: InputDecoration(
-              filled: true,
-              fillColor: AppColors.bgField,
-              hintText: "Введите задачу...",
-              enabledBorder: OutlineInputBorder(
-                borderSide: BorderSide(color: AppColors.bgField, width: 2.0),
+      content: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              isEditing ? "Изменить" : "Новая задача",
+              style: TextStyle(
+                fontSize: 25.0,
+                color: AppColors.mainText,
+                fontWeight: FontWeight.bold,
               ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12.0),
-                borderSide: const BorderSide(
-                  color: AppColors.cardBlueText,
-                  width: 2.0,
+            ),
+            const SizedBox(height: 10.0),
+            Text(
+              isEditing
+                  ? "Редактируйте прмяо сейчас"
+                  : "Что вы планируете сделать сегодня?",
+              style: TextStyle(
+                color: AppColors.secondaryText,
+                fontSize: 15.0,
+                fontWeight: FontWeight.w400,
+              ),
+            ),
+            const SizedBox(height: 20.0),
+            TextFormField(
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) {
+                  return "Поле не может быть пустым!";
+                } else {
+                  return null;
+                }
+              },
+              minLines: 5,
+              maxLines: 6,
+              controller: _taskController,
+              decoration: InputDecoration(
+                errorStyle: TextStyle(color: AppColors.red),
+                filled: true,
+                fillColor: AppColors.bgField,
+                hintText: "Введите задачу...",
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: AppColors.bgField, width: 2.0),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12.0),
+                  borderSide: const BorderSide(
+                    color: AppColors.cardBlueText,
+                    width: 2.0,
+                  ),
                 ),
               ),
             ),
-          ),
-          const SizedBox(height: 20.0),
-          Row(
-            children: [
-              Expanded(
-                child: AppButton(
-                  title: "Отмена",
-                  backgroundColor: AppColors.bgField,
-                  foregroundColor: AppColors.mainText,
-                  onPressed: () => Navigator.pop(context),
+            const SizedBox(height: 20.0),
+            Row(
+              children: [
+                Expanded(
+                  child: AppButton(
+                    title: "Отмена",
+                    backgroundColor: AppColors.bgField,
+                    foregroundColor: AppColors.mainText,
+                    onPressed: () => Navigator.pop(context),
+                  ),
                 ),
-              ),
-              const SizedBox(width: 5.0),
-              Expanded(
-                child: AppButton(
-                  title: isEditing ? "Изменить" : "Добавить",
-                  backgroundColor: AppColors.primaryPurple,
-                  foregroundColor: AppColors.background,
-                  // ГЛАВНОЕ ИЗМЕНЕНИЕ:
-                  // Мы не вызываем addTask(). Мы возвращаем текст тому, кто открыл диалог.
-                  onPressed: () => Navigator.pop(context, _taskController.text),
+                const SizedBox(width: 5.0),
+                Expanded(
+                  child: AppButton(
+                    title: isEditing ? "Изменить" : "Добавить",
+                    backgroundColor: AppColors.primaryPurple,
+                    foregroundColor: AppColors.background,
+                    // ГЛАВНОЕ ИЗМЕНЕНИЕ:
+                    // Мы не вызываем addTask(). Мы возвращаем текст тому, кто открыл диалог.
+                    onPressed: () {
+                      if (_formKey.currentState!.validate()) {
+                        Navigator.pop(context, _taskController.text);
+                      }
+                    },
+                  ),
                 ),
-              ),
-            ],
-          ),
-        ],
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

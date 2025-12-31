@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:zen_todo/models/task.dart';
 
 class TaskProvider extends ChangeNotifier {
-  // 1.  приватный список - снаружи не даем доступ
-
   // хранилище задач
 
   final List<Task> _taskList = [];
@@ -12,26 +10,44 @@ class TaskProvider extends ChangeNotifier {
 
   List<Task> get tasks => _taskList;
 
+  // всего
+  int get totalCount => _taskList.length;
+
+  // Готов - (где сколько задач == isDone - (true) )
+  int get doneCount => _taskList.where((task) => task.isDone).length;
+
+  // АКТИВНО - (ВСЕГО - ГОТОВО)
+  int get activeCount => totalCount - doneCount;
+
   // ---- МЕТОДЫ ДЛЯ ВЫПОЛЕНИЙ ОПРЕДЕЛЕННЫХ ЗАДАЧ ------
 
-  // 1. добавление задачи
-
+  // add
   void addTask(String title) {
     _taskList.add(Task(id: DateTime.now().toString(), title: title));
     notifyListeners();
   }
 
-  // 2. Изменить текущий задачи
-
+  // update
   void updateTask(int index, String title) {
     _taskList[index] = Task(id: _taskList[index].id, title: title);
     notifyListeners();
   }
 
-  // 3. Удалить задачу
-
+  // delete
   void deleteTask(int index) {
     _taskList.removeAt(index);
+    notifyListeners();
+  }
+
+  // метод переключение статуса
+
+  void toggleTaskStatus(int index) {
+    final task = _taskList[index];
+    _taskList[index] = Task(
+      id: task.id,
+      title: task.title,
+      isDone: !task.isDone, // меняется на противооложный либо false либо true
+    );
     notifyListeners();
   }
 }
