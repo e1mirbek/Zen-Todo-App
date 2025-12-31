@@ -1,70 +1,24 @@
 import 'package:flutter/material.dart';
-import 'package:zen_todo/models/task.dart';
+import 'package:provider/provider.dart';
+import 'package:zen_todo/provider/task_provider.dart';
 import 'package:zen_todo/theme/colors.dart';
 import 'package:zen_todo/widgets/task_dialog.dart';
 import 'package:zen_todo/widgets/empty_state.dart';
 import 'package:zen_todo/widgets/summary_card.dart';
 
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
-  // хранилище задач
-
-  List<Task> taskList = [];
-
-  // метод открытия AlertDialog
-
-  Future<void> _showDialog() async {
-    // Ждем (await), пока диалог откроется
-    final String? result = await showDialog<String>(
-      context: context,
-      builder: (context) => const TaskDialog(),
-    );
-    if (result != null && result.isNotEmpty) {
-      addTask(title: result);
-    }
-  }
-
-  // метод редактирование задачи
-
-  Future<void> updateTask(int index) async {
-    final currentIndex = taskList[index];
-    // открыть dialog - передавть текущий текст
-    final String? updateTask = await showDialog(
-      context: context,
-      builder: (context) => TaskDialog(initialText: currentIndex.title),
-    );
-    if (updateTask != null && updateTask.isNotEmpty) {
-      setState(() {
-        taskList[index] = Task(id: currentIndex.id, title: updateTask);
-      });
-    }
-  }
-
-  // метод добавления задачи
-  void addTask({required String title}) {
-    setState(() {
-      taskList.add(
-        Task(id: DateTime.now().toString(), title: title, isDone: false),
-      );
-    });
-  }
-
-  // метод удаление задачи
-
-  void removeTask({required int index}) {
-    setState(() {
-      taskList.removeAt(index);
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
+    // 1. Подключаемся к provider (Слушаем изменения)
+    // 2. context.wath - обозначение (если в provider что то изменится то рисуем занаво)
+
+    final provider = context.watch<TaskProvider>();
+
+    // 3. Берем список из provider
+    final tasks = provider.tasks;
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -120,7 +74,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                             const SizedBox(width: 5.0),
                             Text(
-                              "${taskList.length} осталось",
+                              "${tasks.length} осталось",
                               style: TextStyle(
                                 color: AppColors.mainText,
                                 fontWeight: FontWeight.w600,
@@ -137,7 +91,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     Expanded(
                       child: SummaryCard(
-                        title: "${taskList.length}",
+                        title: "${tasks.length}",
                         subtitle: "всего",
                         bgColor: AppColors.cardBlueBg,
                         textColor: AppColors.cardBlueText,
@@ -155,7 +109,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     const SizedBox(width: 12.0),
                     Expanded(
                       child: SummaryCard(
-                        title: "${taskList.length}",
+                        title: "${tasks.length}",
                         subtitle: "актив",
                         bgColor: AppColors.cardOrangeBg,
                         textColor: AppColors.cardOrangeText,
@@ -164,7 +118,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
                 const SizedBox(height: 30.0),
-                taskList.isEmpty
+                tasks.isEmpty
                     ? SizedBox(
                         height: 400.0,
                         child: EmptyState(
@@ -178,7 +132,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             NeverScrollableScrollPhysics(), // отключаем scroll
                         shrinkWrap:
                             true, // занять столько высоты, сколько нужно задач
-                        itemCount: taskList.length,
+                        itemCount: tasks.length,
                         itemBuilder: (context, index) {
                           return Container(
                             padding: EdgeInsets.symmetric(vertical: 20.0),
@@ -197,21 +151,41 @@ class _HomeScreenState extends State<HomeScreen> {
                               ],
                             ),
                             child: ListTile(
-                              title: Text(taskList[index].title),
+                              title: Text(tasks[index].title),
                               trailing: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  // метод редактирование
+                                  // редактирование
                                   IconButton(
-                                    onPressed: () => updateTask(index),
+                                    // 1. вызов метода с помощью context.read
+                                    onPressed: () async {
+                                      // 2. первым делом при редоктирований берем текущий список задачи
+                                      final currentIndex = tasks[index].title;
+
+                                      final String? newTitle = await showDialog(
+                                        context: context,
+                                        builder: (context) => TaskDialog(
+                                          initialText: currentIndex,
+                                        ),
+                                      );
+                                      if (newTitle != null) {
+                                        context.read<TaskProvider>().updateTask(
+                                          index,
+                                          newTitle,
+                                        );
+                                      }
+                                    },
                                     icon: Icon(
                                       Icons.edit_outlined,
                                       color: AppColors.cardBlueText,
                                     ),
                                   ),
-                                  // метод удаление
+                                  // удаление
                                   IconButton(
-                                    onPressed: () => removeTask(index: index),
+                                    // вызов метода context.read
+                                    onPressed: () => context
+                                        .read<TaskProvider>()
+                                        .deleteTask(index),
                                     icon: Icon(
                                       Icons.delete_outline,
                                       color: AppColors.red,
@@ -233,7 +207,15 @@ class _HomeScreenState extends State<HomeScreen> {
         width: 70,
         height: 70,
         child: FloatingActionButton(
-          onPressed: () => _showDialog(),
+          onPressed: () async {
+            final result = await showDialog(
+              context: context,
+              builder: (context) => const TaskDialog(),
+            );
+            if (result != null) {
+              context.read<TaskProvider>().addTask(result);
+            }
+          },
           backgroundColor: AppColors.primaryPurple,
           shape: const CircleBorder(),
           elevation: 0,
